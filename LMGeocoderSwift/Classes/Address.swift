@@ -82,7 +82,8 @@ public struct Address {
         guard let placemark = locationData as? CLPlacemark else { return }
         
         coordinate = placemark.location?.coordinate
-        streetNumber = placemark.thoroughfare
+        streetNumber = placemark.subThoroughfare
+        route = placemark.thoroughfare
         locality = placemark.locality
         subLocality = placemark.subLocality
         administrativeArea = placemark.administrativeArea
@@ -90,11 +91,7 @@ public struct Address {
         postalCode = placemark.postalCode
         country = placemark.country
         ISOcountryCode = placemark.isoCountryCode
-        if #available(iOS 11.0, *) {
-            if let postalAddress = placemark.postalAddress {
-                formattedAddress = CNPostalAddressFormatter.string(from: postalAddress, style: .mailingAddress)
-            }
-        }
+        formattedAddress = placemark.formattedAddress
         rawSource = placemark
     }
     
@@ -208,4 +205,26 @@ extension Address: Codable {
         try container.encode(formattedAddress, forKey: .formattedAddress)
         try container.encode(lines, forKey: .lines)
     }
+}
+
+extension CLPlacemark {
+    
+    var formattedAddress: String? {
+        
+        if let name = name {
+            var result = name
+            
+            if let city = locality {
+                result += ", \(city)"
+            }
+            
+            if let country = country {
+                result += ", \(country)"
+            }
+            
+            return result
+        }
+        return nil
+    }
+    
 }
